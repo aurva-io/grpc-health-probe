@@ -16,9 +16,29 @@ jobs:
       with:
         fetch-depth: 0
     - name: Setup Go
+      id: setup-go
       uses: actions/setup-go@v5
       with:
         go-version: '1.25.7'
+    - name: Verify and set Go environment
+      run: |
+        echo "Verifying Go version..."
+        go version
+        ACTUAL_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
+        if [ "$ACTUAL_VERSION" != "1.25.7" ]; then
+          echo "::error::Go version mismatch: expected 1.25.7, got $ACTUAL_VERSION"
+          exit 1
+        fi
+        echo "Go version verified: $ACTUAL_VERSION"
+        GOROOT_PATH=$(go env GOROOT)
+        echo "GOROOT=$GOROOT_PATH" >> $GITHUB_ENV
+        echo "PATH=$GOROOT_PATH/bin:$PATH" >> $GITHUB_ENV
+        echo "Cleaning build cache to ensure fresh build..."
+        go clean -cache -testcache
+        echo "Ensuring go.mod is up to date..."
+        go mod tidy
+        echo "Verifying go.mod specifies Go 1.25.7..."
+        grep -q "go 1.25.7" go.mod || (echo "::error::go.mod must specify 'go 1.25.7'" && exit 1)
     - name: Setup ko
       uses: imjasonh/setup-ko@v0.8
       with:
@@ -30,9 +50,13 @@ jobs:
         args: release --clean
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GOROOT: ${{ env.GOROOT }}
+        PATH: ${{ env.PATH }}
     - name: Build and push multi-arch container images
       env:
         VERSION_TAG: ${GITHUB_REF_NAME#v}
+        GOROOT: ${{ env.GOROOT }}
+        PATH: ${{ env.PATH }}
       run: |
         set -euo pipefail
         tag="$(git describe --tag --always --dirty)"
