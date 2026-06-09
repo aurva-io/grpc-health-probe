@@ -19,14 +19,14 @@ jobs:
       id: setup-go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.26.3'
+        go-version: '1.26.4'
     - name: Verify and set Go environment
       run: |
         echo "Verifying Go version..."
         go version
         ACTUAL_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
-        if [ "$ACTUAL_VERSION" != "1.26.3" ]; then
-          echo "::error::Go version mismatch: expected 1.26.3, got $ACTUAL_VERSION"
+        if [ "$ACTUAL_VERSION" != "1.26.4" ]; then
+          echo "::error::Go version mismatch: expected 1.26.4, got $ACTUAL_VERSION"
           exit 1
         fi
         echo "Go version verified: $ACTUAL_VERSION"
@@ -37,8 +37,8 @@ jobs:
         go clean -cache -testcache
         echo "Ensuring go.mod is up to date..."
         go mod tidy
-        echo "Verifying go.mod specifies Go 1.26.3..."
-        grep -q "go 1.26.3" go.mod || (echo "::error::go.mod must specify 'go 1.26.3'" && exit 1)
+        echo "Verifying go.mod specifies Go 1.26.4..."
+        grep -q "go 1.26.4" go.mod || (echo "::error::go.mod must specify 'go 1.26.4'" && exit 1)
     - name: Setup ko
       uses: imjasonh/setup-ko@v0.8
       with:
