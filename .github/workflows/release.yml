@@ -25,8 +25,9 @@ jobs:
         echo "Verifying Go version..."
         go version
         ACTUAL_VERSION=$(go version | awk '{print $3}' | sed 's/go//')
-        if [ "$ACTUAL_VERSION" != "1.27" ]; then
-          echo "::error::Go version mismatch: expected 1.27, got $ACTUAL_VERSION"
+        ACTUAL_MINOR=$(echo "$ACTUAL_VERSION" | cut -d. -f1,2)
+        if [ "$ACTUAL_MINOR" != "1.27" ]; then
+          echo "::error::Go version mismatch: expected 1.27.x, got $ACTUAL_VERSION"
           exit 1
         fi
         echo "Go version verified: $ACTUAL_VERSION"
